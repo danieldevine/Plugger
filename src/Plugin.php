@@ -30,7 +30,7 @@ class Plugin
         $this->filePath = $this->getFilePath($plugin['slug']);
         $this->is_installed = $this->isInstalled($plugin['slug']);
         $this->is_active = $this->isActive();
-        $this->wp_repository_data = $this->getWPRepositoryData($plugin['slug']);
+        //$this->wp_repository_data = $this->getWPRepositoryData($plugin['slug']); -- too slow
     }
 
     protected function getFilePath($slug): string
@@ -64,7 +64,6 @@ class Plugin
 
     protected function getInstalledPlugins(): array
     {
-        wp_clean_plugins_cache();
         return get_plugins();
     }
 

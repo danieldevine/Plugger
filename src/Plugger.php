@@ -19,10 +19,45 @@ class Plugger
     public function __construct(array $plugins, array $config = [])
     {
         $this->config = $config;
-        $this->plugins = self::processPlugins($plugins);
+        $this->plugins = $plugins;
     }
 
-    protected static function getNames($plugins): string
+    public function init(): void
+    {
+
+        if (!current_user_can('activate_plugins')) {
+            return;
+        }
+
+        $this->plugins = self::processPlugins($this->plugins);
+
+        $must_install = $this->mustInstall();
+        $must_activate = $this->mustActivate();
+        $should_install = $this->shouldInstall();
+        $should_activate = $this->shouldActivate();
+
+        if (!empty($must_install)) {
+            $names = self::getPluginNames($must_install);
+            new Notifier('Your theme requires that these plugins be installed: ' . $names, NoticeType::NOTICE_ERROR);
+        }
+
+        if (!empty($must_activate)) {
+            $names = self::getPluginNames($must_activate);
+            new Notifier('Your theme requires that these installed plugins be activated: ' . $names, NoticeType::NOTICE_ERROR);
+        }
+
+        if (!empty($should_install)) {
+            $names = self::getPluginNames($should_install);
+            new Notifier('Your theme recommends that these plugins be installed: ' . $names, NoticeType::NOTICE_WARNING);
+        }
+
+        if (!empty($should_activate)) {
+            $names = self::getPluginNames($should_activate);
+            new Notifier('Your theme recommends that these installed plugins be activated: ' . $names, NoticeType::NOTICE_WARNING);
+        }
+    }
+
+    protected static function getPluginNames($plugins): string
     {
         $names = [];
 
@@ -31,35 +66,6 @@ class Plugger
         }
 
         return implode(', ', $names);
-    }
-
-    public function init(): void
-    {
-        $must_install = $this->mustInstall();
-        $must_activate = $this->mustActivate();
-        $should_install = $this->shouldInstall();
-        $should_activate = $this->shouldActivate();
-
-        if (!empty($must_install)) {
-            $names = self::getNames($must_install);
-            new Notifier('Your theme requires that these plugins be installed: ' . $names, NoticeType::NOTICE_ERROR);
-        }
-
-        if (!empty($must_activate)) {
-            $names = self::getNames($must_activate);
-            new Notifier('Your theme requires that these installed plugins be activated: ' . $names, NoticeType::NOTICE_ERROR);
-        }
-
-        if (!empty($should_install)) {
-            $names = self::getNames($should_install);
-            new Notifier('Your theme recommends that these plugins be installed: ' . $names, NoticeType::NOTICE_WARNING);
-        }
-
-        if (!empty($should_activate)) {
-            $names = self::getNames($should_activate);
-            new Notifier('Your theme recommends that these installed plugins be activated: ' . $names, NoticeType::NOTICE_WARNING);
-        }
-
     }
 
     /**
