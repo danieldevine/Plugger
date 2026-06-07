@@ -3,6 +3,7 @@
 namespace Coderjerk\Plugger;
 
 use Coderjerk\Plugger\Enums\NoticeType;
+use Coderjerk\Plugger\Utils\Plugins;
 
 class Plugger
 {
@@ -20,16 +21,17 @@ class Plugger
     {
         $this->config = $config;
         $this->plugins = $plugins;
+        Admin::init();
     }
 
     public function init(): void
     {
-
+        // no point harassing the innocent
         if (!current_user_can('activate_plugins')) {
             return;
         }
 
-        $this->plugins = self::processPlugins($this->plugins);
+        $this->plugins = Plugins::initialisePlugins($this->plugins);
 
         $must_install = $this->mustInstall();
         $must_activate = $this->mustActivate();
@@ -37,71 +39,42 @@ class Plugger
         $should_activate = $this->shouldActivate();
 
         if (!empty($must_install)) {
-            $names = self::getPluginNames($must_install);
+            $names = Plugins::getPluginNames($must_install);
             new Notifier('Your theme requires that these plugins be installed: ' . $names, NoticeType::NOTICE_ERROR);
         }
 
         if (!empty($must_activate)) {
-            $names = self::getPluginNames($must_activate);
+            $names = Plugins::getPluginNames($must_activate);
             new Notifier('Your theme requires that these installed plugins be activated: ' . $names, NoticeType::NOTICE_ERROR);
         }
 
         if (!empty($should_install)) {
-            $names = self::getPluginNames($should_install);
+            $names = Plugins::getPluginNames($should_install);
             new Notifier('Your theme recommends that these plugins be installed: ' . $names, NoticeType::NOTICE_WARNING);
         }
 
         if (!empty($should_activate)) {
-            $names = self::getPluginNames($should_activate);
+            $names = Plugins::getPluginNames($should_activate);
             new Notifier('Your theme recommends that these installed plugins be activated: ' . $names, NoticeType::NOTICE_WARNING);
         }
     }
 
-    protected static function getPluginNames($plugins): string
-    {
-        $names = [];
-
-        foreach ($plugins as $plugin) {
-            $names[] = $plugin->name;
-        }
-
-        return implode(', ', $names);
-    }
-
-    /**
-     * Initialise the Plugin objects.
-     *
-     * @param $plugins
-     *
-     * @return array
-     */
-    public static function processPlugins($plugins): array
-    {
-        $processed_plugins = [];
-
-        foreach ($plugins as $plugin) {
-            $processed_plugins[] = new Plugin($plugin);
-        }
-
-        return $processed_plugins;
-    }
-
-    public function mustActivate(): array
+    protected function mustActivate(): array
     {
         return array_filter($this->plugins, fn($plugin) => $plugin->is_installed && !$plugin->is_active && $plugin->is_required);
     }
 
-    public function mustInstall(): array
+    protected function mustInstall(): array
     {
         return array_filter($this->plugins, fn($plugin) => !$plugin->is_installed && $plugin->is_required);
     }
 
-    public function shouldActivate(): array
+    protected function shouldActivate(): array
     {
         return array_filter($this->plugins, fn($plugin) => $plugin->is_installed && !$plugin->is_active && !$plugin->is_required);
     }
 
-    public function shouldInstall(): array
+    protected function shouldInstall(): array
     {
         return array_filter($this->plugins, fn($plugin) => !$plugin->is_installed && !$plugin->is_required);
     }

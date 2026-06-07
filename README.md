@@ -47,6 +47,15 @@ $plugger->init();
 
 ![img.png](img.png)
 
+## Features
+
+1. Define required and recommended plugins in theme
+2. Display notifications to the user making them aware that they need to install/activate required plugins
+3. Force activation of specified required plugins
+4. Notify when updates are required
+5. enhancement: blacklist plugins - prevent activation of blacklisted plugins deemed incompatible. Like Elementor for
+   example.
+
 ## Contributing
 
 Human contributions in the form of PRs, issues and discussion are very welcome, obvious AI contributions to any of the
