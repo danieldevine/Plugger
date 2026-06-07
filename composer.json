@@ -1,0 +1,32 @@
+{
+    "name": "coderjerk/plugger",
+    "type": "library",
+    "description": "Manage WP plugins",
+    "license": "GPL-3.0-or-later",
+    "keywords": [
+        "wordpress"
+    ],
+    "require-dev": {
+        "symfony/var-dumper": "^8.1",
+        "roots/wordpress-full": "^7.0",
+        "roots/wordpress-core-installer": "^4.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "roots/wordpress-core-installer": true
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Coderjerk\\Plugger\\": "src/"
+        }
+    },
+    "extra": {
+        "wordpress-install-dir": "wp"
+    },
+    "scripts": {
+        "build-test-theme": [
+            "./bin/buildenv.sh"
+        ]
+    }
+}
