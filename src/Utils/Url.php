@@ -19,4 +19,18 @@ class Url
         }
         return false;
     }
+    
+    public static function nonceUrl($item, $base_url): string
+    {
+        $query = [
+            'plugin' => urlencode($item['slug']),
+            'plugger-action' => $item['action'] . '-plugin'
+        ];
+
+        return wp_nonce_url(
+            add_query_arg($query, $base_url),
+            'plugger-' . $item['action'],
+            'plugger-nonce'
+        );
+    }
 }

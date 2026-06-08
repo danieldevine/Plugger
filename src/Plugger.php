@@ -4,6 +4,7 @@ namespace Coderjerk\Plugger;
 
 use Coderjerk\Plugger\Enums\NoticeType;
 use Coderjerk\Plugger\Utils\Plugins;
+use Coderjerk\Plugger\Utils\Styles;
 
 class Plugger
 {
@@ -24,6 +25,7 @@ class Plugger
         $this->plugins = Plugins::initialisePlugins($this->plugins);
 
         Admin::init($this);
+        Styles::init();
     }
 
     public function init(): void

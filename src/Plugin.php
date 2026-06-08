@@ -3,6 +3,7 @@
 namespace Coderjerk\Plugger;
 
 use Coderjerk\Plugger\Enums\PluginSource;
+use Coderjerk\Plugger\Enums\RowActions;
 use Coderjerk\Plugger\Utils\Url;
 use Coderjerk\Plugger\Http\WordPressRepository;
 
@@ -20,6 +21,7 @@ class Plugin
     public string $status;
     public string $filePath;
     public string $type;
+    public RowActions $action;
 
     public function __construct(array $plugin)
     {
@@ -32,7 +34,21 @@ class Plugin
         $this->filePath = $this->getFilePath($plugin['slug']);
         $this->is_installed = $this->isInstalled($plugin['slug']);
         $this->is_active = $this->isActive();
+        $this->action = $this->setAction();
         //$this->wp_repository_data = $this->getWPRepositoryData($plugin['slug']); -- too slow
+    }
+
+    protected function setAction(): RowActions
+    {
+        if ($this->is_installed && !$this->is_active) {
+            return RowActions::ACTIVATE;
+        }
+
+        if (!$this->is_installed) {
+            return RowActions::INSTALL;
+        }
+
+        return RowActions::NONE;
     }
 
     protected function getFilePath($slug): string
