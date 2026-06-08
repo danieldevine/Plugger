@@ -21,7 +21,9 @@ class Plugger
     {
         $this->config = $config;
         $this->plugins = $plugins;
-        Admin::init();
+        $this->plugins = Plugins::initialisePlugins($this->plugins);
+
+        Admin::init($this);
     }
 
     public function init(): void
@@ -30,8 +32,6 @@ class Plugger
         if (!current_user_can('activate_plugins')) {
             return;
         }
-
-        $this->plugins = Plugins::initialisePlugins($this->plugins);
 
         $must_install = $this->mustInstall();
         $must_activate = $this->mustActivate();
@@ -59,22 +59,22 @@ class Plugger
         }
     }
 
-    protected function mustActivate(): array
+    public function mustActivate(): array
     {
         return array_filter($this->plugins, fn($plugin) => $plugin->is_installed && !$plugin->is_active && $plugin->is_required);
     }
 
-    protected function mustInstall(): array
+    public function mustInstall(): array
     {
         return array_filter($this->plugins, fn($plugin) => !$plugin->is_installed && $plugin->is_required);
     }
 
-    protected function shouldActivate(): array
+    public function shouldActivate(): array
     {
         return array_filter($this->plugins, fn($plugin) => $plugin->is_installed && !$plugin->is_active && !$plugin->is_required);
     }
 
-    protected function shouldInstall(): array
+    public function shouldInstall(): array
     {
         return array_filter($this->plugins, fn($plugin) => !$plugin->is_installed && !$plugin->is_required);
     }

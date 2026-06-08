@@ -3,11 +3,15 @@
 namespace Coderjerk\Plugger;
 
 use Coderjerk\Plugger\Utils\Html;
+use Coderjerk\Plugger\Views\ListTable;
 
 class Admin
 {
-    public static function init(): void
+    public static Plugger $plugger;
+
+    public static function init(Plugger $plugger): void
     {
+        self::$plugger = $plugger;
         add_action('admin_menu', [self::class, 'addAdminMenu']);
     }
 
@@ -15,16 +19,25 @@ class Admin
     {
         add_plugins_page(
             'Plugger',
-            'Theme Required',
+            'Theme Plugins',
             'install_plugins',
             'plugger',
             [self::class, 'adminPage'],
-            1
+            0
         );
     }
 
     public static function adminPage(): void
     {
-        print Html::wrap('Plugger', 'h1');
+        $title = Html::wrap('Theme Plugins', 'h1');
+        print HTMl::wrap($title, 'div', ['class' => 'wrap']); // we need the 'wrap' class to position the title above admin notices.
+        $table = new ListTable(self::$plugger);
+        $table->prepare_items();
+        echo "<div class='tablenav top'>\n";
+        $table->views();
+        echo "</div>\n";
+        echo "<div class='wrap'>";
+        $table->display();
+        echo "</div>";
     }
 }

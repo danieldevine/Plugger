@@ -19,12 +19,14 @@ class Plugin
     public string $slug;
     public string $status;
     public string $filePath;
+    public string $type;
 
     public function __construct(array $plugin)
     {
         $this->name = $plugin['name'];
         $this->slug = $plugin['slug'];
         $this->is_required = $plugin['required'] ?? false;
+        $this->type = $plugin['required'] ? 'Required' : 'Recommended';
         $this->force_activation = $plugin['force_activation'] ?? false;
         $this->source = $this->getPluginSource($plugin);
         $this->filePath = $this->getFilePath($plugin['slug']);
