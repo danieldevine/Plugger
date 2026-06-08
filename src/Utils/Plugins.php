@@ -6,13 +6,6 @@ use Coderjerk\Plugger\Plugin;
 
 class Plugins
 {
-    /**
-     * Initialise the Plugin objects.
-     *
-     * @param $plugins
-     *
-     * @return array
-     */
     public static function initialisePlugins($plugins): array
     {
         $initialised_plugins = [];
@@ -34,5 +27,4 @@ class Plugins
 
         return implode(', ', $names);
     }
-
 }

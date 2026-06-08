@@ -9,6 +9,7 @@ class Url
         if (preg_match('|^http[s]?://wordpress\.org/(?:extend/)?plugins/|', $string)) {
             return true;
         }
+
         return false;
     }
 
@@ -17,9 +18,10 @@ class Url
         if (preg_match('|^http[s]?://|', $string)) {
             return true;
         }
+        
         return false;
     }
-    
+
     public static function nonceUrl($item, $base_url): string
     {
         $query = [
