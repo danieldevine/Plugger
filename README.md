@@ -12,7 +12,7 @@ themes or plugins so it doesn't care about WordPress coding 'standards' or backw
 TGMPA still works fine but hasn't been updated for 7 years and is one file with 3653 lines of spaghetti, so I'm
 doing
 this as much for the fun challenge of working through its code, using modern php where appropriate (like `Enums` and
-`match`) and improving what I can as anything else. The current
+`match`) and improving what I can as much as anything else. The current
 goal is feature parity and once I reach that we can look at enhancements.
 
 Obviously, managing plugins via composer is a completely rational way of doing this in this day and age but doesn't
@@ -22,6 +22,8 @@ user or deployment model, so I think there's still a legitimate need for this ki
 ## Getting Started
 
 ```php
+use Coderjerk\Plugger\Plugger;
+
 $plugins = [
     [
         'name' => 'Yoast SEO', //yuck
@@ -39,10 +41,11 @@ $plugins = [
         'slug' => 'bulkboy',
         'source' => 'https://github.com/danieldevine/bulkboy/archive/refs/tags/v1.0.0.zip',
         'required' => false,
+
     ],
 ];
 
-$plugger = new Coderjerk\Plugger($plugins)
+$plugger = new Plugger($plugins)
 $plugger->init();
 ```
 
