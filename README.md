@@ -72,5 +72,14 @@ above will be ignored. It's just not interesting to me.
 ```composer build-test-theme```
 This will create a functional installation of the world's greatest WP theme for testing.If using Laravel
 Valet you can immediately visit it by going to http://blart.test. This can be used for manual amd automated testing. The
-theme and db are wiped and reinstalled on rerun of the command. Automated testing is great but sometimes you can't beat
-sense checking with your own eyes. 
+theme and db are wiped and reinstalled on rerun of the command.
+
+### Code Comparison
+
+##### TGMPA
+
+![img_1.png](img_1.png)
+
+##### Plugger
+
+![img_3.png](img_3.png)
