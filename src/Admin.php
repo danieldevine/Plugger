@@ -23,7 +23,7 @@ class Admin
             'install_plugins',
             'plugger',
             [self::class, 'adminPage'],
-            0
+            1
         );
     }
 

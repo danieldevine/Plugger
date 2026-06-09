@@ -56,6 +56,12 @@ $plugger->init();
 5. enhancement: blacklist plugins - prevent activation of blacklisted plugins deemed incompatible. Like Elementor for
    example.
 
+## Notes
+
+I strongly recommend using in conjunction with an object cache as the plugin makes http requests to the wordpress.org
+and github APIs which will slow things down on the admin page depending on number of plugins if not cached. If an object
+cache is active then the requests will be cached for 9000 seconds by default.(TODO make this configurable).
+
 ## Contributing
 
 Human contributions in the form of PRs, issues and discussion are very welcome, obvious AI contributions to any of the

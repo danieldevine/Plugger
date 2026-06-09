@@ -36,6 +36,13 @@ class Styles
         .plugger__row--recommended th{
             border-left: 3px solid #f0b849;
         }
+        .column-primary {
+            white-space: nowrap;
+            font-weight: 600;
+        }
+        .column-primary .row-actions {
+            font-weight: 400;
+        }
         ');
     }
 }

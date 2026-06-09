@@ -12,20 +12,20 @@ use Coderjerk\Plugger\Http\GitHubRepository;
 class Plugin
 {
     public PluginSource $source;
+    public RowActions $action;
+    public bool $force_activation;
     public bool $is_active;
     public bool $is_installed;
     public bool $is_required;
-    public bool $force_activation;
     public mixed $repository_data;
     public string $description = '';
+    public string $filePath;
     public string $link;
     public string $name;
     public string $slug;
     public string $status;
-    public string $filePath;
     public string $type;
     public string $url = '';
-    public RowActions $action;
 
     public function __construct(array $plugin)
     {
@@ -110,6 +110,10 @@ class Plugin
 
     public function getRepositoryData(): ?array
     {
+        if ($this->is_installed) {
+            return $this->getInstalledPluginData();
+        }
+
         $repository_data = match ($this->source) {
             PluginSource::WP_REPOSITORY => $this->getWPRepositoryData(),
             PluginSource::EXTERNAL => $this->getExternalRepositoryData(),
@@ -121,6 +125,10 @@ class Plugin
         return $repository_data;
     }
 
+    /**
+     * The plugin isn't installed and is from the WordPress repo,
+     * so we'll try to get data from there.
+     */
     protected function getWPRepositoryData(): ?array
     {
         $path = Path::getWpRepoSlug($this->slug);
@@ -137,9 +145,17 @@ class Plugin
         return $data;
     }
 
+    /**
+     * The plugin is not installed and comes from an external repo
+     * Chances are its GitHub so we'll try there for data.
+     */
     protected function getExternalRepositoryData(): ?array
     {
-        if (!$this->url && Url::isGitHubRepoUrl($this->url)) {
+        if (!$this->url) {
+            return null;
+        }
+
+        if (!Url::isGitHubRepoUrl($this->url)) {
             return null;
         }
 
@@ -155,6 +171,32 @@ class Plugin
         }
 
         return $data;
+    }
+
+    /**
+     * The plugin is installed (maybe not active though)
+     * so we'll get data from WordPress.
+     */
+    protected function getInstalledPluginData(): ?array
+    {
+        $installed_plugins = $this->getInstalledPlugins();
+
+        if (empty($installed_plugins)) {
+            return null;
+        }
+
+        if (!array_key_exists($this->filePath, $installed_plugins)) {
+            return null;
+        }
+
+        $data = $installed_plugins[$this->filePath];
+
+        if ($data['Description']) {
+            $this->description = $data['Description'];
+        }
+
+        $this->repository_data = $data;
+        return $installed_plugins[$this->filePath];
     }
 
 }

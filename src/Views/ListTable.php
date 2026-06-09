@@ -60,9 +60,9 @@ class ListTable extends WP_List_Table
             'cb' => '<input type="checkbox" />',
             'name' => 'Name',
             'slug' => 'Slug',
+            'type' => 'Type',
             'description' => 'Description',
             'source' => 'Source',
-            'type' => 'Type',
         ];
     }
 
@@ -104,6 +104,19 @@ class ListTable extends WP_List_Table
     public function get_sortable_columns(): array
     {
         return ['name' => ['name', true]];
+    }
+
+    protected function currentViewContext(): AdminViewContext
+    {
+        if (!isset($_REQUEST['view'])) {
+            return AdminViewContext::ALL;
+        }
+
+        return match ($_REQUEST['view']) {
+            AdminViewContext::INSTALL->value => AdminViewContext::INSTALL,
+            AdminViewContext::ACTIVATE->value => AdminViewContext::ACTIVATE,
+            default => AdminViewContext::ALL,
+        };
     }
 
     protected function table_data(): array
@@ -174,7 +187,11 @@ class ListTable extends WP_List_Table
 
     public function get_bulk_actions(): array
     {
-        return ['bulk-update' => 'Update'];
+        return match ($this->currentViewContext()) {
+            AdminViewContext::INSTALL => ['plugger-bulk-' . AdminViewContext::INSTALL->value],
+            AdminViewContext::ACTIVATE => ['plugger-bulk-' . AdminViewContext::ACTIVATE->value],
+            default => [AdminViewContext::INSTALL->value, AdminViewContext::ACTIVATE->value]
+        };
     }
 
     public function no_items(): void
@@ -218,7 +235,8 @@ class ListTable extends WP_List_Table
     protected function column_name($item): string
     {
         if ($item['action'] === 'none') {
-            return $item['name'];
+            $actions = ["Installed &amp; Activated"];
+            return $item['name'] . $this->row_actions($actions, $always_visible = true);;
         }
 
         $nonce = Url::nonceUrl($item, $this->plugger_url);
