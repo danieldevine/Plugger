@@ -22,6 +22,7 @@ class ListTable extends WP_List_Table
     {
         $this->plugger = $plugger;
         $this->plugins = $this->plugger->plugins;
+        $this->getPluginRepositoryData();
 
         foreach (AdminViewContext::cases() as $case) {
             $this->view_totals[$case->value] = 0;
@@ -30,8 +31,8 @@ class ListTable extends WP_List_Table
         $this->setViewTotals();
 
         parent::__construct([
-            'singular' => __('Plugin', 'plugger'),
-            'plural' => __('Plugins', 'plugger'),
+            'singular' => 'Plugin',
+            'plural' => 'Plugins',
             'ajax' => false
         ]);
 
@@ -44,17 +45,30 @@ class ListTable extends WP_List_Table
         $this->view_totals[AdminViewContext::INSTALL->value] = count($this->toInstall());
     }
 
+    protected function getPluginRepositoryData(): void
+    {
+        // this is an expensive operation (albeit cached)
+        // so we only run it here.
+        foreach ($this->plugins as $plugin) {
+            $plugin->getRepositoryData();
+        }
+    }
+
     public function get_columns(): array
     {
         return [
             'cb' => '<input type="checkbox" />',
             'name' => 'Name',
             'slug' => 'Slug',
+            'description' => 'Description',
             'source' => 'Source',
             'type' => 'Type',
         ];
     }
 
+    /**
+     * Necessary.
+     */
     public function get_table_classes(): array
     {
         return ['widefat', 'plugger'];
@@ -107,6 +121,7 @@ class ListTable extends WP_List_Table
                 'cb' => "<input type='checkbox'/>",
                 'name' => $plugin->name,
                 'slug' => $plugin->slug,
+                'description' => $plugin->description ?? '',
                 'source' => $plugin->source->value,
                 'type' => $plugin->type,
                 'action' => $plugin->action->value,
@@ -116,11 +131,17 @@ class ListTable extends WP_List_Table
         return $data;
     }
 
+    /**
+     * Applied to all columns in the table unless a method exists called column_$column_name
+     */
     public function column_default($item, $column_name): mixed
     {
         return $item[$column_name];
     }
 
+    /**
+     * The checkbox column, method has to be named this.
+     */
     public function column_cb($item)
     {
         return sprintf(
@@ -131,13 +152,20 @@ class ListTable extends WP_List_Table
         );
     }
 
+    /**
+     * Apply a class to each row.
+     */
     public function single_row($item): void
     {
-        $css_class = match ($item['type']) {
-            'Recommended' => 'recommended',
-            'Required' => 'required',
-            default => 'normal',
-        };
+        if ($item['action'] === 'none') {
+            $css_class = 'none';
+        } else {
+            $css_class = match ($item['type']) {
+                'Recommended' => 'recommended',
+                'Required' => 'required',
+                default => 'normal',
+            };
+        }
 
         echo "<tr class='plugger__row plugger__row--{$css_class}'>";
         $this->single_row_columns($item);
@@ -151,7 +179,7 @@ class ListTable extends WP_List_Table
 
     public function no_items(): void
     {
-        _e('Nothing to update or install.', 'plugger');
+        echo 'Nothing to activate or install.';
     }
 
     protected function toInstall(): array
@@ -184,8 +212,15 @@ class ListTable extends WP_List_Table
         return $views;
     }
 
+    /**
+     * Special handling for the lead column with added row actions.
+     */
     protected function column_name($item): string
     {
+        if ($item['action'] === 'none') {
+            return $item['name'];
+        }
+
         $nonce = Url::nonceUrl($item, $this->plugger_url);
         $actions = [
             $item['action'] => sprintf("<a href='%1s'>%2s</a>", $nonce, ucFirst($item['action']))

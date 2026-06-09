@@ -13,12 +13,21 @@ class Url
         return false;
     }
 
+    public static function isGitHubRepoUrl($string): bool
+    {
+        if (preg_match('|^http[s]?://github\.com/|', $string)) {
+            return true;
+        }
+
+        return false;
+    }
+
     public static function isUrl($string): bool
     {
         if (preg_match('|^http[s]?://|', $string)) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -35,4 +44,5 @@ class Url
             'plugger-nonce'
         );
     }
+
 }

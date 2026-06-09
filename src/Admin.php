@@ -30,6 +30,7 @@ class Admin
     public static function adminPage(): void
     {
         $title = Html::wrap('Theme Plugins', 'h1');
+        $title .= Html::wrap('These plugins are necessary or highly recommended for your theme to work as intended.', 'p');
         print HTMl::wrap($title, 'div', ['class' => 'wrap']); // we need the 'wrap' class to position the title above admin notices.
         $table = new ListTable(self::$plugger);
         $table->prepare_items();

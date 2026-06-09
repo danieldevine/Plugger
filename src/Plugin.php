@@ -4,8 +4,10 @@ namespace Coderjerk\Plugger;
 
 use Coderjerk\Plugger\Enums\PluginSource;
 use Coderjerk\Plugger\Enums\RowActions;
+use Coderjerk\Plugger\Utils\Path;
 use Coderjerk\Plugger\Utils\Url;
 use Coderjerk\Plugger\Http\WordPressRepository;
+use Coderjerk\Plugger\Http\GitHubRepository;
 
 class Plugin
 {
@@ -14,13 +16,15 @@ class Plugin
     public bool $is_installed;
     public bool $is_required;
     public bool $force_activation;
-    public mixed $wp_repository_data;
+    public mixed $repository_data;
+    public string $description = '';
     public string $link;
     public string $name;
     public string $slug;
     public string $status;
     public string $filePath;
     public string $type;
+    public string $url = '';
     public RowActions $action;
 
     public function __construct(array $plugin)
@@ -35,7 +39,7 @@ class Plugin
         $this->is_installed = $this->isInstalled($plugin['slug']);
         $this->is_active = $this->isActive();
         $this->action = $this->setAction();
-        //$this->wp_repository_data = $this->getWPRepositoryData($plugin['slug']); -- too slow
+        $this->repository_data = null;
     }
 
     protected function setAction(): RowActions
@@ -71,6 +75,8 @@ class Plugin
         }
 
         if (UrL::isUrl($plugin['source'])) {
+            $this->url = $plugin['source'];
+
             if (Url::isWordPressRepoUrl($plugin['source'])) {
                 return PluginSource::WP_REPOSITORY;
             }
@@ -93,29 +99,6 @@ class Plugin
         return false;
     }
 
-    /**
-     * Plugin 'slugs' don't really exist anywhere except for the Wordpress.org repo
-     * generally they can be derived from the folder name of the plugin
-     * if the 'slug' is coming from get_plugins() it is the foldername/file-path (usually)
-     * so we need to process it into a usable repo slug.
-     *
-     * @link    https://wordpress.stackexchange.com/questions/120004/how-can-i-find-plugins-slug#answer-290402
-     *
-     * @WP_Shit The likes of fucken Hello Dolly don't work like this though
-     *
-     */
-    protected static function getWpRepoSlug(string $path): string
-    {
-        $path = preg_replace('/\.php$/', '', $path);
-
-        // If there's a slash, then return the folder name as that's probably the slug
-        if (str_contains($path, '/')) {
-            return explode('/', $path)[0];
-        }
-
-        return $path;
-    }
-
     protected function isInstalled($path): bool
     {
         if (is_dir(WP_PLUGIN_DIR . "/" . $path)) {
@@ -125,24 +108,53 @@ class Plugin
         return false;
     }
 
-    /**
-     * If this is a WP repo plugin and we're able
-     * to match path to slug, then we can get some useful info
-     */
-    protected function getWPRepositoryData($path)
+    public function getRepositoryData(): ?array
     {
-        if ($this->source !== PluginSource::WP_REPOSITORY) {
-            return null;
-        }
+        $repository_data = match ($this->source) {
+            PluginSource::WP_REPOSITORY => $this->getWPRepositoryData(),
+            PluginSource::EXTERNAL => $this->getExternalRepositoryData(),
+            default => null,
+        };
 
-        $slug = self::getWpRepoSlug($path);
+        $this->repository_data = $repository_data;
 
-        $data = WordPressRepository::call($slug);
+        return $repository_data;
+    }
+
+    protected function getWPRepositoryData(): ?array
+    {
+        $path = Path::getWpRepoSlug($this->slug);
+        $data = WordPressRepository::call($path);
 
         if (array_key_exists('error', $data)) {
             return null;
         }
 
+        if ($data['short_description']) {
+            $this->description = $data['short_description'];
+        }
+
         return $data;
     }
+
+    protected function getExternalRepositoryData(): ?array
+    {
+        if (!$this->url && Url::isGitHubRepoUrl($this->url)) {
+            return null;
+        }
+
+        $path = Path::getGitHubRepoSlug($this->url);
+        $data = GitHubRepository::call($path);
+
+        if (array_key_exists('error', $data)) {
+            return null;
+        }
+
+        if ($data['description']) {
+            $this->description = $data['description'];
+        }
+
+        return $data;
+    }
+
 }

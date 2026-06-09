@@ -18,6 +18,12 @@ class Styles
         .plugger__row td, .plugger__row th {
             border-bottom: 1px solid #c3c4c7;
         }
+        .plugger__row--none {
+            background-color: #fff;
+        }
+        .plugger__row--none th {
+            border-left: 3px solid #41d855;
+        }
         .plugger__row--required {
             background-color: #fcf0f0;
         }
