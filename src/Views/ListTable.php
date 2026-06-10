@@ -2,9 +2,11 @@
 
 namespace Coderjerk\Plugger\Views;
 
+use Coderjerk\Plugger\Actions\Activate;
 use Coderjerk\Plugger\Enums\AdminViewContext;
 use Coderjerk\Plugger\Plugger;
 use Coderjerk\Plugger\Utils\Url;
+use Coderjerk\Plugger\Actions\Install;
 use WP_List_Table;
 
 class ListTable extends WP_List_Table
@@ -16,13 +18,14 @@ class ListTable extends WP_List_Table
 
     protected array $view_totals = [];
 
-    protected string $plugger_url = "/wp-admin/plugins.php?page=plugger";
+    protected string $plugger_url = '';
 
     public function __construct(Plugger $plugger)
     {
         $this->plugger = $plugger;
         $this->plugins = $this->plugger->plugins;
         $this->getPluginRepositoryData();
+        $this->plugger_url = Url::pluggerUrl();
 
         foreach (AdminViewContext::cases() as $case) {
             $this->view_totals[$case->value] = 0;
@@ -84,6 +87,8 @@ class ListTable extends WP_List_Table
         $perPage = 10;
         $currentPage = $this->get_pagenum();
         $totalItems = count($data);
+
+        $this->process_bulk_action();
 
         $this->set_pagination_args(array(
             'total_items' => $totalItems,
@@ -192,6 +197,35 @@ class ListTable extends WP_List_Table
             AdminViewContext::ACTIVATE => ['plugger-bulk-' . AdminViewContext::ACTIVATE->value],
             default => [AdminViewContext::INSTALL->value, AdminViewContext::ACTIVATE->value]
         };
+    }
+
+    public function process_bulk_action(): void
+    {
+        if (empty($_REQUEST['plugger-nonce'])) {
+            return;
+        }
+
+        $nonce = $_REQUEST['plugger-nonce'];
+
+        if ('install-plugin' === $this->current_action()) {
+            if (!wp_verify_nonce($nonce, 'plugger-install')) {
+                die('Something went right.');
+            }
+
+            $plugins = $this->toInstall();
+            $plugin = array_find($plugins, fn($plugin) => $plugin->slug === $_REQUEST['plugin']);
+            Install::installSinglePlugin($plugin);
+        }
+
+        if ('activate-plugin' === $this->current_action()) {
+            if (!wp_verify_nonce($nonce, 'plugger-activate')) {
+                die('Something went right.');
+            }
+
+            $plugins = $this->toActivate();
+            $plugin = array_find($plugins, fn($plugin) => $plugin->slug === $_REQUEST['plugin']);
+            Activate::activateSinglePlugin($plugin);
+        }
     }
 
     public function no_items(): void

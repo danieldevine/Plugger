@@ -19,7 +19,7 @@ class Plugin
     public bool $is_required;
     public mixed $repository_data;
     public string $description = '';
-    public string $filePath;
+    public string $file_path;
     public string $link;
     public string $name;
     public string $slug;
@@ -35,7 +35,7 @@ class Plugin
         $this->type = $plugin['required'] ? 'Required' : 'Recommended';
         $this->force_activation = $plugin['force_activation'] ?? false;
         $this->source = $this->getPluginSource($plugin);
-        $this->filePath = $this->getFilePath($plugin['slug']);
+        $this->file_path = $this->getFilePath($plugin['slug']);
         $this->is_installed = $this->isInstalled($plugin['slug']);
         $this->is_active = $this->isActive();
         $this->action = $this->setAction();
@@ -93,7 +93,7 @@ class Plugin
 
     protected function isActive(): bool
     {
-        if (is_plugin_active($this->filePath)) {
+        if (is_plugin_active($this->file_path)) {
             return true;
         }
         return false;
@@ -138,8 +138,12 @@ class Plugin
             return null;
         }
 
-        if ($data['short_description']) {
+        if (isset($data['short_description'])) {
             $this->description = $data['short_description'];
+        }
+
+        if (isset($data['download_link'])) {
+            $this->url = $data['download_link'];
         }
 
         return $data;
@@ -185,18 +189,18 @@ class Plugin
             return null;
         }
 
-        if (!array_key_exists($this->filePath, $installed_plugins)) {
+        if (!array_key_exists($this->file_path, $installed_plugins)) {
             return null;
         }
 
-        $data = $installed_plugins[$this->filePath];
+        $data = $installed_plugins[$this->file_path];
 
         if ($data['Description']) {
             $this->description = $data['Description'];
         }
 
         $this->repository_data = $data;
-        return $installed_plugins[$this->filePath];
+        return $installed_plugins[$this->file_path];
     }
 
 }

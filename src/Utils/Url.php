@@ -35,7 +35,7 @@ class Url
     {
         $query = [
             'plugin' => urlencode($item['slug']),
-            'plugger-action' => $item['action'] . '-plugin'
+            'action' => $item['action'] . '-plugin'
         ];
 
         return wp_nonce_url(
@@ -43,6 +43,11 @@ class Url
             'plugger-' . $item['action'],
             'plugger-nonce'
         );
+    }
+
+    public static function pluggerUrl(): string
+    {
+        return "/wp-admin/plugins.php?page=plugger";
     }
 
 }
